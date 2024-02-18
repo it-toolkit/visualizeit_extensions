@@ -7,5 +7,5 @@ import 'common.dart';
 
 
 abstract class VisualizerExtension {
-  Widget? buildWidgetFor(Model model);
+  Widget? render(Model model, BuildContext context);
 }

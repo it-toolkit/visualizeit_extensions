@@ -28,5 +28,5 @@ abstract class ScriptingExtension {
   List<CommandDefinition> getAllCommandDefinitions();
 
   ///Returns a valid command if a compatible [CommandDefinition] is found or null otherwise
-  Command? buildCommand(String name, List<String> args);
+  Command? buildCommand(String rawCommand);
 }

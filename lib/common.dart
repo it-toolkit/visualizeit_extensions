@@ -15,10 +15,6 @@ abstract class ModelBuilderCommand implements Command {
    Model call();
 }
 
-abstract class GlobalCommand implements Command {
-  void call();
-}
-
 abstract class Model {
   String name;
 

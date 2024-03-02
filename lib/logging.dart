@@ -2,7 +2,7 @@
 import 'package:flutter/foundation.dart';
 
 abstract class LogEventHandler {
-  void handle(LogLevel level, String category, String Function() msgBuilder, {Error? error, StackTrace? stackTrace});
+  void handle(LogLevel level, String category, String Function() msgBuilder, {Exception? error, StackTrace? stackTrace});
 }
 
 class Logging implements LogEventHandler {
@@ -29,9 +29,15 @@ class Logging implements LogEventHandler {
   }
 
   @override
-  void handle(LogLevel level, String category, String Function() msgBuilder, {Error? error, StackTrace? stackTrace}) {
+  void handle(LogLevel level, String category, String Function() msgBuilder, {Exception? error, StackTrace? stackTrace}) {
     if (kDebugMode) {
       debugPrint("${DateTime.now()} ${level.name.toUpperCase()} [$category] - ${msgBuilder()}");
+      if (error != null) {
+        debugPrint(" >>>> ${error.toString()}");
+      }
+      if (stackTrace != null) {
+        debugPrint(stackTrace.toString());
+      }
     }
   }
 }
@@ -73,7 +79,7 @@ class Logger {
     _logEventHandler.handle(LogLevel.warn, category, msgBuilder);
   }
 
-  void error(String Function() msgBuilder, {Error? error, StackTrace? stackTrace}){
-    _logEventHandler.handle(LogLevel.trace, category, msgBuilder, error: error, stackTrace: stackTrace);
+  void error(String Function() msgBuilder, {Exception? error, StackTrace? stackTrace}){
+    _logEventHandler.handle(LogLevel.error, category, msgBuilder, error: error, stackTrace: stackTrace);
   }
 }

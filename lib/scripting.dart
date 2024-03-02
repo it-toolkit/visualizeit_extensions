@@ -1,6 +1,7 @@
 library visualizeit_extensions;
 
 import 'common.dart';
+import 'extension.dart';
 
 enum ArgType {
   string,
@@ -17,7 +18,7 @@ class CommandArgDef {
 }
 
 class CommandDefinition {
-  String extensionId;
+  ExtensionId extensionId;
   String name;
   List<CommandArgDef> args;
 

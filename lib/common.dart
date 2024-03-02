@@ -1,4 +1,6 @@
 
+import 'extension.dart';
+
 abstract class Command {}
 
 abstract class ModelCommand implements Command {
@@ -26,7 +28,8 @@ abstract class ModelBuilderCommand implements Command {
 }
 
 abstract class Model {
+  ExtensionId extensionId;
   String name;
 
-  Model(this.name);
+  Model(this.extensionId, this.name);
 }

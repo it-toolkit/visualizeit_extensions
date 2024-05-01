@@ -32,4 +32,6 @@ abstract class Model {
   String name;
 
   Model(this.extensionId, this.name);
+
+  Model clone();
 }

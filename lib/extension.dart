@@ -11,3 +11,7 @@ class Extension {
 
   Extension(this.extensionId, this.scripting, this.visualizer);
 }
+
+abstract class ExtensionBuilder {
+  Extension build();
+}

@@ -12,8 +12,10 @@ class Logging implements LogEventHandler {
   static final Logging _instance = Logging._internal();
 
   Map<String, Logger> _loggers = {};
+
   LogAppender appender;
   StackTraceAppender stackTraceAppender = (stackTrace) => debugPrintStack(stackTrace: stackTrace);
+  LogLevel minLogLevel = kDebugMode ? LogLevel.trace : LogLevel.info;
 
   factory Logging() {
     return _instance;
@@ -33,7 +35,7 @@ class Logging implements LogEventHandler {
 
   @override
   void handle(LogLevel level, String category, String Function() msgBuilder, {Exception? error, StackTrace? stackTrace}) {
-    if (kDebugMode) {
+    if (level >= minLogLevel) {
       appender("${DateTime.now()} ${level.name.toUpperCase()} [$category] - ${msgBuilder()}");
       if (error != null) {
         appender(" >>>> ${error.toString()}");
@@ -46,7 +48,12 @@ class Logging implements LogEventHandler {
 }
 
 enum LogLevel {
-  error, warn, info, debug, trace;
+  error._(500), warn._(400), info._(300), debug._(200), trace._(100);
+
+  final int _value;
+  const LogLevel._(int value) : _value = value;
+
+  operator >= (LogLevel other) => _value >= other._value;
 }
 
 class Logger {

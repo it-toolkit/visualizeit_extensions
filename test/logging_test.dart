@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:visualizeit_extensions/logging.dart';
@@ -55,5 +53,31 @@ void main() {
 
     expect(stackTraceAppenderCalls, hasLength(1));
     expect(stackTraceAppenderCalls[0], equals(currentStackTrace));
+  });
+
+  test('each log calls the proper appender if log level is enabled', () {
+    final logger = Logger("fake-category");
+    List<String> appenderCalls = [];
+    logging.appender = (String message, {int? wrapWidth}) => appenderCalls.add(message);
+
+    final expectedLogCallsCount = {
+      LogLevel.trace: 5,
+      LogLevel.debug: 4,
+      LogLevel.info: 3,
+      LogLevel.warn: 2,
+      LogLevel.error: 1,
+    };
+
+    expectedLogCallsCount.forEach((minLogLevel, expectedCallsCount) {
+      logging.minLogLevel = minLogLevel;
+      logger.trace(() => "trace message");
+      logger.debug(() => "debug message");
+      logger.info(() => "info message");
+      logger.warn(() => "warn message");
+      logger.error(() => "error message");
+
+      expect(appenderCalls, hasLength(expectedCallsCount));
+      appenderCalls.clear();
+    });
   });
 }

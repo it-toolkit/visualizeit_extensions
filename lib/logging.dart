@@ -5,18 +5,21 @@ abstract class LogEventHandler {
   void handle(LogLevel level, String category, String Function() msgBuilder, {Exception? error, StackTrace? stackTrace});
 }
 
+typedef LogAppender = void Function(String message, { int? wrapWidth });
+typedef StackTraceAppender = void Function(StackTrace);
+
 class Logging implements LogEventHandler {
   static final Logging _instance = Logging._internal();
 
   Map<String, Logger> _loggers = {};
+  LogAppender appender;
+  StackTraceAppender stackTraceAppender = (stackTrace) => debugPrintStack(stackTrace: stackTrace);
 
   factory Logging() {
     return _instance;
   }
 
-  Logging._internal() {
-    // initialization logic
-  }
+  Logging._internal() : appender = (kDebugMode ?  debugPrintSynchronously :  debugPrintThrottled);
 
   Logger? _getLogger(String category) => _loggers[category];
 
@@ -31,12 +34,12 @@ class Logging implements LogEventHandler {
   @override
   void handle(LogLevel level, String category, String Function() msgBuilder, {Exception? error, StackTrace? stackTrace}) {
     if (kDebugMode) {
-      debugPrint("${DateTime.now()} ${level.name.toUpperCase()} [$category] - ${msgBuilder()}");
+      appender("${DateTime.now()} ${level.name.toUpperCase()} [$category] - ${msgBuilder()}");
       if (error != null) {
-        debugPrint(" >>>> ${error.toString()}");
+        appender(" >>>> ${error.toString()}");
       }
       if (stackTrace != null) {
-        debugPrint(stackTrace.toString());
+        stackTraceAppender(stackTrace);
       }
     }
   }

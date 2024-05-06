@@ -8,6 +8,16 @@ abstract class LogEventHandler {
 typedef LogAppender = void Function(String message, { int? wrapWidth });
 typedef StackTraceAppender = void Function(StackTrace);
 
+typedef LogFilter = bool Function(LogLevel level, String category);
+
+LogFilter logCategoriesStartingWith(List<String> categoryPrefixes){
+  return (LogLevel level, String category) => categoryPrefixes.any((categoryPrefix) => category.startsWith(categoryPrefix));
+}
+
+LogFilter ignoreCategoriesStartingWith(List<String> categoryPrefixes){
+  return (LogLevel level, String category) => categoryPrefixes.every((categoryPrefix) => !category.startsWith(categoryPrefix));
+}
+
 class Logging implements LogEventHandler {
   static final Logging _instance = Logging._internal();
 
@@ -16,6 +26,7 @@ class Logging implements LogEventHandler {
   LogAppender appender;
   StackTraceAppender stackTraceAppender = (stackTrace) => debugPrintStack(stackTrace: stackTrace);
   LogLevel minLogLevel = kDebugMode ? LogLevel.trace : LogLevel.info;
+  LogFilter? filter;
 
   factory Logging() {
     return _instance;
@@ -35,7 +46,7 @@ class Logging implements LogEventHandler {
 
   @override
   void handle(LogLevel level, String category, String Function() msgBuilder, {Exception? error, StackTrace? stackTrace}) {
-    if (level >= minLogLevel) {
+    if ((level >= minLogLevel) && (filter?.call(level, category) ?? true) ) {
       appender("${DateTime.now()} ${level.name.toUpperCase()} [$category] - ${msgBuilder()}");
       if (error != null) {
         appender(" >>>> ${error.toString()}");

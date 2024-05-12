@@ -64,11 +64,38 @@ class CommandDefinition {
   }
 }
 
-abstract class ScriptingExtension {
+abstract interface class ScriptingExtension {
   List<CommandDefinition> getAllCommandDefinitions();
 
   ///Returns a valid command if a compatible [CommandDefinition] is found or null otherwise
   Command? buildCommand(RawCommand rawCommand);
+}
+
+class DefaultScriptingExtension implements ScriptingExtension {
+  final Map<CommandDefinition, Command Function(RawCommand)> _config;
+  List<CommandDefinition>? _allCommandDefinitions;
+
+  DefaultScriptingExtension(Map<CommandDefinition, Command Function(RawCommand)> supportedCommands)
+    : this._config = Map.from(supportedCommands);
+
+  @override
+  Command? buildCommand(RawCommand rawCommand) {
+    final def = getMatchingCommandDefinition(rawCommand);
+    if(def ==null) return null;
+
+    return _config[def]?.call(rawCommand);
+  }
+
+  @override
+  List<CommandDefinition> getAllCommandDefinitions() {
+    return _allCommandDefinitions ??= _config.keys.toList();
+  }
+
+  CommandDefinition? getMatchingCommandDefinition(RawCommand rawCommand) {
+    return getAllCommandDefinitions()
+        .where((it) => rawCommand.name == it.name && rawCommand.argsLength() == it.args.length)
+        .singleOrNull;
+  }
 }
 
 abstract class RawCommand {

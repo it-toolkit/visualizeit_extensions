@@ -20,8 +20,47 @@ class CommandContext {
   int get hashCode => timeFrame.hashCode;
 }
 
-mixin CommandExecutionAware {
-  Duration timeFrame = Duration.zero;
+mixin CommandExecutionAware on Model {
+  Duration _timeFrame = Duration.zero;
+  int _framesDuration = 1;
+  int _pendingFrames = 1;
+
+  get pendingFrames => _pendingFrames;
+  get timeFrame => _timeFrame;
+  get isLastFrame => _pendingFrames == 1;
+  get isFinished => _pendingFrames <= 0;
+
+  ///Setups the current command expected duration in frames amount
+  ///
+  ///Returns the current model for method chaining
+  Model withFramesDuration(int framesDuration) {
+    _pendingFrames = framesDuration;
+    return this;
+  }
+
+  ///Updates the command execution state using [CommandContext] data (like current command time frame)
+  ///
+  ///Returns the current model for method chaining
+  Model updateCommandExecutionState(CommandContext context) {
+    _timeFrame = context.timeFrame;
+    return this;
+  }
+
+  ///Decrements the pending frames count and updates the command execution state using [CommandContext] data (like current command time frame).
+  ///
+  ///Returns the current model for method chaining
+  Model consumePendingFrame(CommandContext context){
+    _timeFrame = context.timeFrame;
+    _pendingFrames--;
+    return this;
+  }
+
+  ///Copies the state of the provided [source] into the caller [CommandExecutionAware] instance
+  void withCommandExecutionStateFrom(CommandExecutionAware source){
+    _timeFrame = source._timeFrame;
+    _framesDuration = source._framesDuration;
+    _pendingFrames = source._pendingFrames;
+  }
 }
 
 abstract class ModelCommand implements Command {

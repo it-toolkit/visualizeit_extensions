@@ -3,13 +3,7 @@ library visualizeit_extensions;
 import 'common.dart';
 import 'extension.dart';
 
-enum ArgType {
-  string,
-  int,
-  double,
-  boolean,
-  stringArray
-}
+enum ArgType { string, int, double, boolean, stringArray }
 
 class CommandArgDef {
   String name;
@@ -20,22 +14,33 @@ class CommandArgDef {
   dynamic convert(dynamic value) {
     return switch (type) {
       ArgType.string => value is String ? value : value.toString(),
-      ArgType.int => value is num ? value.toInt() : int.tryParse(value.toString()).throwIfNull(Exception("Cannot convert '$value' to $type")),
-      ArgType.double => value is num ? value.toDouble() : double.tryParse(value.toString()).throwIfNull(Exception("Cannot convert '$value' to $type")),
-      ArgType.boolean => value is bool ? value : bool.tryParse(value.toString(), caseSensitive: false).throwIfNull(Exception("Cannot convert '$value' to $type")),
-      ArgType.stringArray => value is List<String> ? value : (value is List ? value.map((e) => e.toString()) : null).throwIfNull(Exception("Cannot convert '$value' to $type"))
+      ArgType.int => value is num
+          ? value.toInt()
+          : int.tryParse(value.toString())
+              .throwIfNull(Exception("Cannot convert '$value' to $type")),
+      ArgType.double => value is num
+          ? value.toDouble()
+          : double.tryParse(value.toString())
+              .throwIfNull(Exception("Cannot convert '$value' to $type")),
+      ArgType.boolean => value is bool
+          ? value
+          : bool.tryParse(value.toString(), caseSensitive: false)
+              .throwIfNull(Exception("Cannot convert '$value' to $type")),
+      ArgType.stringArray => value is List<String>
+          ? value
+          : (value is List ? value.map((e) => e.toString()).toList() : null)
+              .throwIfNull(Exception("Cannot convert '$value' to $type"))
     };
   }
 }
 
 extension _DynamicExtension on dynamic {
   dynamic throwIfNull(Exception exception) {
-    if(this == null) throw exception;
+    if (this == null) throw exception;
 
     return this;
   }
 }
-
 
 class CommandDefinition {
   ExtensionId extensionId;
@@ -59,7 +64,7 @@ class CommandDefinition {
 
   int _getArgPositionByName(String name) {
     var index = args.indexWhere((arg) => arg.name == name);
-    if(index < 0) throw Exception("Unknown argument name: $name");
+    if (index < 0) throw Exception("Unknown argument name: $name");
     return index;
   }
 }
@@ -75,13 +80,14 @@ class DefaultScriptingExtension implements ScriptingExtension {
   final Map<CommandDefinition, Command Function(RawCommand)> _config;
   List<CommandDefinition>? _allCommandDefinitions;
 
-  DefaultScriptingExtension(Map<CommandDefinition, Command Function(RawCommand)> supportedCommands)
-    : this._config = Map.from(supportedCommands);
+  DefaultScriptingExtension(
+      Map<CommandDefinition, Command Function(RawCommand)> supportedCommands)
+      : this._config = Map.from(supportedCommands);
 
   @override
   Command? buildCommand(RawCommand rawCommand) {
     final def = getMatchingCommandDefinition(rawCommand);
-    if(def ==null) return null;
+    if (def == null) return null;
 
     return _config[def]?.call(rawCommand);
   }
@@ -93,13 +99,14 @@ class DefaultScriptingExtension implements ScriptingExtension {
 
   CommandDefinition? getMatchingCommandDefinition(RawCommand rawCommand) {
     return getAllCommandDefinitions()
-        .where((it) => rawCommand.name == it.name && rawCommand.argsLength() == it.args.length)
+        .where((it) =>
+            rawCommand.name == it.name &&
+            rawCommand.argsLength() == it.args.length)
         .singleOrNull;
   }
 }
 
 abstract class RawCommand {
-
   final String name;
 
   int argsLength();
@@ -107,8 +114,10 @@ abstract class RawCommand {
   const RawCommand._(this.name); // Private constructor
 
   factory RawCommand.literal(String name) = RawLiteralCommand;
-  factory RawCommand.withPositionalArgs(String name, List<dynamic> args) = RawCommandWithPositionalArgs;
-  factory RawCommand.withNamedArgs(String name, Map<String, dynamic> namedArgs) = RawCommandWithNameArgs;
+  factory RawCommand.withPositionalArgs(String name, List<dynamic> args) =
+      RawCommandWithPositionalArgs;
+  factory RawCommand.withNamedArgs(
+      String name, Map<String, dynamic> namedArgs) = RawCommandWithNameArgs;
 }
 
 class RawLiteralCommand extends RawCommand {
@@ -124,7 +133,8 @@ class RawLiteralCommand extends RawCommand {
 class RawCommandWithPositionalArgs extends RawCommand {
   final List<dynamic> args;
 
-  RawCommandWithPositionalArgs(super.name, this.args) : super._(); // Private constructor
+  RawCommandWithPositionalArgs(super.name, this.args)
+      : super._(); // Private constructor
 
   @override
   int argsLength() => args.length;
@@ -138,7 +148,8 @@ class RawCommandWithPositionalArgs extends RawCommand {
 class RawCommandWithNameArgs extends RawCommand {
   final Map<String, dynamic> namedArgs;
 
-  RawCommandWithNameArgs(super.name, this.namedArgs) : super._(); // Private constructor
+  RawCommandWithNameArgs(super.name, this.namedArgs)
+      : super._(); // Private constructor
 
   @override
   int argsLength() => namedArgs.length;

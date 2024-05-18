@@ -3,17 +3,20 @@ library visualizeit_extensions;
 import 'common.dart';
 import 'extension.dart';
 
-enum ArgType { string, int, double, boolean, stringArray }
+enum ArgType { string, int, double, boolean, stringArray, optionalString }
 
 class CommandArgDef {
   String name;
   ArgType type;
+  bool required;
+  String? defaultValue;
 
-  CommandArgDef(this.name, this.type);
+  CommandArgDef(this.name, this.type, {this.required = true, this.defaultValue});
 
   dynamic convert(dynamic value) {
     return switch (type) {
       ArgType.string => value is String ? value : value.toString(),
+      ArgType.optionalString => value is String? ? value : value?.toString(),
       ArgType.int => value is num
           ? value.toInt()
           : int.tryParse(value.toString())
@@ -51,12 +54,14 @@ class CommandDefinition {
 
   dynamic getArg({required String name, required RawCommand from}) {
     final argPosition = _getArgPositionByName(name);
-    final argType = args[argPosition];
+    final argDef = args[argPosition];
 
     if (from is RawCommandWithPositionalArgs) {
-      return argType.convert(from.getArg(argPosition));
-    } else if (from is RawCommandWithNameArgs) {
-      return argType.convert(from.getArg(name));
+      return argDef.convert(from.getArg(argPosition));
+    } else if (from is RawCommandWithNameArgs && from.containsArg(argDef.name)) {
+      return argDef.convert(from.getArg(name));
+    } else if (from is RawCommandWithNameArgs && !from.containsArg(argDef.name) && !argDef.required) {
+      return argDef.convert(argDef.defaultValue);
     }
 
     throw Exception("Unexpected raw command type: $from");
@@ -82,7 +87,7 @@ class DefaultScriptingExtension implements ScriptingExtension {
 
   DefaultScriptingExtension(
       Map<CommandDefinition, Command Function(RawCommand)> supportedCommands)
-      : this._config = Map.from(supportedCommands);
+      : _config = Map.from(supportedCommands);
 
   @override
   Command? buildCommand(RawCommand rawCommand) {
@@ -99,9 +104,7 @@ class DefaultScriptingExtension implements ScriptingExtension {
 
   CommandDefinition? getMatchingCommandDefinition(RawCommand rawCommand) {
     return getAllCommandDefinitions()
-        .where((it) =>
-            rawCommand.name == it.name &&
-            rawCommand.argsLength() == it.args.length)
+        .where((commandDefinition) => rawCommand.isCompliantWith(commandDefinition))
         .singleOrNull;
   }
 }
@@ -110,6 +113,8 @@ abstract class RawCommand {
   final String name;
 
   int argsLength();
+
+  bool isCompliantWith(CommandDefinition commandDefinition);
 
   const RawCommand._(this.name); // Private constructor
 
@@ -127,6 +132,11 @@ class RawLiteralCommand extends RawCommand {
   int argsLength() => 0;
 
   @override
+  bool isCompliantWith(CommandDefinition commandDefinition) {
+    return commandDefinition.name == name && commandDefinition.args.isEmpty;
+  }
+
+  @override
   String toString() => 'RawLiteralCommand {name=$name}';
 }
 
@@ -138,6 +148,11 @@ class RawCommandWithPositionalArgs extends RawCommand {
 
   @override
   int argsLength() => args.length;
+
+  @override
+  bool isCompliantWith(CommandDefinition commandDefinition) {
+    return commandDefinition.name == name && commandDefinition.args.length == args.length;
+  }
 
   dynamic getArg(int index) => args[index];
 
@@ -153,6 +168,14 @@ class RawCommandWithNameArgs extends RawCommand {
 
   @override
   int argsLength() => namedArgs.length;
+
+  @override
+  bool isCompliantWith(CommandDefinition commandDefinition) {
+    return commandDefinition.name == name
+        && commandDefinition.args.every((arg) => namedArgs.containsKey(arg.name) || !arg.required);
+  }
+
+  bool containsArg(String name) => namedArgs.containsKey(name);
 
   dynamic getArg(String name) => namedArgs[name];
 

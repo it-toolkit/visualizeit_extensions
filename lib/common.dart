@@ -1,7 +1,11 @@
 
+import 'package:visualizeit_extensions/scripting.dart';
+
 import 'extension.dart';
 
-abstract class Command {}
+abstract class Command {
+  CommandMetadata? metadata;
+}
 
 class CommandContext {
   Duration timeFrame;
@@ -63,7 +67,7 @@ mixin CommandExecutionAware on Model {
   }
 }
 
-abstract class ModelCommand implements Command {
+abstract class ModelCommand extends Command {
   String modelName;
 
   ModelCommand(this.modelName);
@@ -83,7 +87,7 @@ class Result {
   }
 }
 
-abstract class ModelBuilderCommand implements Command {
+abstract class ModelBuilderCommand extends Command {
    Model call(CommandContext context);
 }
 

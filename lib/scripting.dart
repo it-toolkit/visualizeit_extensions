@@ -94,7 +94,7 @@ class DefaultScriptingExtension implements ScriptingExtension {
     final def = getMatchingCommandDefinition(rawCommand);
     if (def == null) return null;
 
-    return _config[def]?.call(rawCommand);
+    return _config[def]?.call(rawCommand)?..metadata = rawCommand.metadata;
   }
 
   @override
@@ -109,24 +109,36 @@ class DefaultScriptingExtension implements ScriptingExtension {
   }
 }
 
+class CommandMetadata {
+  final int scriptLineIndex;
+
+  CommandMetadata(this.scriptLineIndex);
+
+  @override
+  String toString() {
+    return 'CommandMetadata{scriptLineIndex: $scriptLineIndex}';
+  }
+
+
+}
+
 abstract class RawCommand {
   final String name;
+  final CommandMetadata? metadata;
 
   int argsLength();
 
   bool isCompliantWith(CommandDefinition commandDefinition);
 
-  const RawCommand._(this.name); // Private constructor
+  const RawCommand._(this.name, { this.metadata }); // Private constructor
 
-  factory RawCommand.literal(String name) = RawLiteralCommand;
-  factory RawCommand.withPositionalArgs(String name, List<dynamic> args) =
-      RawCommandWithPositionalArgs;
-  factory RawCommand.withNamedArgs(
-      String name, Map<String, dynamic> namedArgs) = RawCommandWithNameArgs;
+  factory RawCommand.literal(String name, {CommandMetadata? metadata}) = RawLiteralCommand;
+  factory RawCommand.withPositionalArgs(String name, List<dynamic> args, {CommandMetadata? metadata}) = RawCommandWithPositionalArgs;
+  factory RawCommand.withNamedArgs(String name, Map<String, dynamic> namedArgs, {CommandMetadata? metadata}) = RawCommandWithNameArgs;
 }
 
 class RawLiteralCommand extends RawCommand {
-  RawLiteralCommand(super.name) : super._(); // Private constructor
+  RawLiteralCommand(super.name, {super.metadata}) : super._(); // Private constructor
 
   @override
   int argsLength() => 0;
@@ -143,7 +155,7 @@ class RawLiteralCommand extends RawCommand {
 class RawCommandWithPositionalArgs extends RawCommand {
   final List<dynamic> args;
 
-  RawCommandWithPositionalArgs(super.name, this.args)
+  RawCommandWithPositionalArgs(super.name, this.args, {super.metadata})
       : super._(); // Private constructor
 
   @override
@@ -163,7 +175,7 @@ class RawCommandWithPositionalArgs extends RawCommand {
 class RawCommandWithNameArgs extends RawCommand {
   final Map<String, dynamic> namedArgs;
 
-  RawCommandWithNameArgs(super.name, this.namedArgs)
+  RawCommandWithNameArgs(super.name, this.namedArgs, {super.metadata})
       : super._(); // Private constructor
 
   @override

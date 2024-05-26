@@ -3,7 +3,12 @@ library visualizeit_extensions;
 import 'common.dart';
 import 'extension.dart';
 
-enum ArgType { string, int, double, boolean, stringArray, optionalString }
+enum ArgType {
+  string, int, double, boolean, stringArray, optionalString;
+
+  @override
+  String toString() => name;
+}
 
 class CommandArgDef {
   String name;

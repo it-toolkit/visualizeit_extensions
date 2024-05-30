@@ -61,11 +61,13 @@ class CommandDefinition {
     final argPosition = _getArgPositionByName(name);
     final argDef = args[argPosition];
 
-    if (from is RawCommandWithPositionalArgs) {
+    if (from is RawCommandWithPositionalArgs && argPosition < from.args.length) {
       return argDef.convert(from.getArg(argPosition));
+    } else if (from is RawCommandWithPositionalArgs && !argDef.required) {
+      return argDef.convert(argDef.defaultValue);
     } else if (from is RawCommandWithNameArgs && from.containsArg(argDef.name)) {
       return argDef.convert(from.getArg(name));
-    } else if (from is RawCommandWithNameArgs && !from.containsArg(argDef.name) && !argDef.required) {
+    } else if (from is RawCommandWithNameArgs && !argDef.required) {
       return argDef.convert(argDef.defaultValue);
     }
 
@@ -168,10 +170,19 @@ class RawCommandWithPositionalArgs extends RawCommand {
 
   @override
   bool isCompliantWith(CommandDefinition commandDefinition) {
-    return commandDefinition.name == name && commandDefinition.args.length == args.length;
+    return commandDefinition.name == name &&
+        (commandDefinition.args.length == args.length || _missingArgsAreNotRequired(commandDefinition));
   }
 
-  dynamic getArg(int index) => args[index];
+  bool _missingArgsAreNotRequired(CommandDefinition commandDefinition) {
+    for(int i = args.length; i < commandDefinition.args.length; i++){
+      if (commandDefinition.args[i].required) return false;
+    }
+
+    return true;
+  }
+
+  dynamic getArg(int index) => index < args.length ? args[index] : null;
 
   @override
   String toString() => 'RawLiteralCommand {name=$name, args=$args}';

@@ -17,12 +17,13 @@ void main() {
   final rawLiteralCommand = RawCommand.literal("a-command-name");
 
   final rawCommandWithPositionalArgs = RawCommand.withPositionalArgs("a-command-name", ["text", 1, 2.3, true, ["a", "2"], 1.0]);
+  final rawCommandWithPositionalArgsAndMissingOptionalParam = RawCommand.withPositionalArgs("a-command-name", ["text", 1, 2.3, true, ["a", "2"]]);
   final rawCommandWithPositionalCastableArgs = RawCommand.withPositionalArgs("a-command-name", ["text", "1", "2.3", "true", ["a", 2], "1.0"]);
   final rawCommandWithNamedArgs = RawCommand.withNamedArgs("a-command-name", {"param1": "text", "param2": 1, "param3": 2.3, "param4": true, "param5": ["a", "2"], "optionalParam1" : 1.0});
   final rawCommandWithNamedCastableArgs = RawCommand.withNamedArgs("a-command-name", {"param1": "text", "param2": "1", "param3": "2.3", "param4": "true", "param5": ["a", 2], "optionalParam1" : "1.0"});
   final rawCommandWithNamedArgsAndMissingOptionalParam = RawCommand.withNamedArgs("a-command-name", {"param1": "text", "param2": 1, "param3": 2.3, "param4": true, "param5": ["a", "2"]});
 
-  final rawCommandWithArgs = [rawCommandWithPositionalArgs, rawCommandWithPositionalCastableArgs, rawCommandWithNamedArgs, rawCommandWithNamedCastableArgs, rawCommandWithNamedArgsAndMissingOptionalParam];
+  final rawCommandWithArgs = [rawCommandWithPositionalArgs, rawCommandWithPositionalArgsAndMissingOptionalParam, rawCommandWithPositionalCastableArgs, rawCommandWithNamedArgs, rawCommandWithNamedCastableArgs, rawCommandWithNamedArgsAndMissingOptionalParam];
 
   final rawCommandWithInvalidPositionalArgs = RawCommand.withPositionalArgs("a-command-name", [null, "a", "b", "c", {"a": "2"}, "a"]);
 

@@ -135,7 +135,16 @@ abstract class RawCommand {
 
   int argsLength();
 
-  bool isCompliantWith(CommandDefinition commandDefinition);
+  bool isCompliantWith(CommandDefinition commandDefinition) {
+    var namespace = "${commandDefinition.extensionId}.";
+
+    bool isFullyQualifiedName = name.startsWith(namespace);
+    if (isFullyQualifiedName) {
+      return commandDefinition.name == name.replaceFirst(namespace, "");
+    }
+
+    return commandDefinition.name == name;
+  }
 
   const RawCommand._(this.name, { this.metadata }); // Private constructor
 
@@ -152,7 +161,7 @@ class RawLiteralCommand extends RawCommand {
 
   @override
   bool isCompliantWith(CommandDefinition commandDefinition) {
-    return commandDefinition.name == name && commandDefinition.args.isEmpty;
+    return super.isCompliantWith(commandDefinition) && commandDefinition.args.isEmpty;
   }
 
   @override
@@ -170,7 +179,7 @@ class RawCommandWithPositionalArgs extends RawCommand {
 
   @override
   bool isCompliantWith(CommandDefinition commandDefinition) {
-    return commandDefinition.name == name &&
+    return super.isCompliantWith(commandDefinition) &&
         (commandDefinition.args.length == args.length || _missingArgsAreNotRequired(commandDefinition));
   }
 
@@ -199,8 +208,8 @@ class RawCommandWithNameArgs extends RawCommand {
 
   @override
   bool isCompliantWith(CommandDefinition commandDefinition) {
-    return commandDefinition.name == name
-        && commandDefinition.args.every((arg) => namedArgs.containsKey(arg.name) || !arg.required);
+    return super.isCompliantWith(commandDefinition) &&
+        (commandDefinition.args.every((arg) => namedArgs.containsKey(arg.name) || !arg.required));
   }
 
   bool containsArg(String name) => namedArgs.containsKey(name);

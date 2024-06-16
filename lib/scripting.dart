@@ -81,39 +81,11 @@ class CommandDefinition {
   }
 }
 
-abstract interface class ScriptingExtension {
+abstract interface class Scripting {
   List<CommandDefinition> getAllCommandDefinitions();
 
   ///Returns a valid command if a compatible [CommandDefinition] is found or null otherwise
   Command? buildCommand(RawCommand rawCommand);
-}
-
-class DefaultScriptingExtension implements ScriptingExtension {
-  final Map<CommandDefinition, Command Function(RawCommand)> _config;
-  List<CommandDefinition>? _allCommandDefinitions;
-
-  DefaultScriptingExtension(
-      Map<CommandDefinition, Command Function(RawCommand)> supportedCommands)
-      : _config = Map.from(supportedCommands);
-
-  @override
-  Command? buildCommand(RawCommand rawCommand) {
-    final def = getMatchingCommandDefinition(rawCommand);
-    if (def == null) return null;
-
-    return _config[def]?.call(rawCommand)?..metadata = rawCommand.metadata;
-  }
-
-  @override
-  List<CommandDefinition> getAllCommandDefinitions() {
-    return _allCommandDefinitions ??= _config.keys.toList();
-  }
-
-  CommandDefinition? getMatchingCommandDefinition(RawCommand rawCommand) {
-    return getAllCommandDefinitions()
-        .where((commandDefinition) => rawCommand.isCompliantWith(commandDefinition))
-        .singleOrNull;
-  }
 }
 
 class CommandMetadata {
@@ -125,8 +97,6 @@ class CommandMetadata {
   String toString() {
     return 'CommandMetadata{scriptLineIndex: $scriptLineIndex}';
   }
-
-
 }
 
 abstract class RawCommand {

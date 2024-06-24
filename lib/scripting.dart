@@ -150,6 +150,7 @@ class RawCommandWithPositionalArgs extends RawCommand {
   @override
   bool isCompliantWith(CommandDefinition commandDefinition) {
     return super.isCompliantWith(commandDefinition) &&
+        (commandDefinition.args.length >= args.length) &&
         (commandDefinition.args.length == args.length || _missingArgsAreNotRequired(commandDefinition));
   }
 
@@ -179,6 +180,7 @@ class RawCommandWithNameArgs extends RawCommand {
   @override
   bool isCompliantWith(CommandDefinition commandDefinition) {
     return super.isCompliantWith(commandDefinition) &&
+        (commandDefinition.args.length >= namedArgs.keys.length) &&
         (commandDefinition.args.every((arg) => namedArgs.containsKey(arg.name) || !arg.required));
   }
 

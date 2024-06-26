@@ -1,44 +1,68 @@
 library visualizeit_extensions;
 
+import 'dart:core';
+
 import 'common.dart';
 import 'extension.dart';
 
-enum ArgType {
-  string, int, double, boolean, stringArray, optionalString;
 
+typedef _Int = int;
+typedef _Double = double;
+
+class ArgType<Type> {
+  static ArgType string = ArgType<String>("string", (value) => value is String ? value : (value?.toString())
+      .throwIfNull(Exception("Cannot convert '$value' to string")));
+  static ArgType optionalString = ArgType<String?>("optionalString", string._convert);
+  static ArgType stringArray = ArgType<String>("stringArray", string._convert, array: true);
+
+  static ArgType int = ArgType<_Int>("int", (value) => value is num ? value.toInt() : _Int.tryParse(value.toString())
+      .throwIfNull(Exception("Cannot convert '$value' to int")));
+  static ArgType intArray = ArgType<_Int>("intArray", int._convert, array: true);
+
+  static ArgType double = ArgType<_Double>("double", (value) => value is num ? value.toDouble() : _Double.tryParse(value.toString())
+      .throwIfNull(Exception("Cannot convert '$value' to double")));
+  static ArgType doubleArray = ArgType<_Double>("doubleArray", double._convert, array: true);
+
+  static ArgType boolean = ArgType<bool>("boolean", (value) => value is bool ? value : bool.tryParse(value.toString(), caseSensitive: false)
+      .throwIfNull(Exception("Cannot convert '$value' to boolean")));
+
+  final String typeName;
+  final bool optional;
+  final bool array;
+  final dynamic Function(dynamic) _convert;
+  
+  ArgType(this.typeName, this._convert, {this.array = false}): optional = _isNullable<Type>();
+
+  static bool _isNullable<T>() => null is T;
+
+  dynamic convert(dynamic value){
+    if ((optional) && value == null) return null;
+
+    if (value is Type || (array && value is List<Type>)) return value;
+
+    try {
+      if (array) return (value as Iterable).map((e) => _convert(e) as Type).toList() ;
+
+      return _convert(value);
+    } catch (e) {
+      throw Exception("Cannot convert '$value' to $typeName");
+    }
+  }
+  
   @override
-  String toString() => name;
+  String toString() => typeName;
 }
 
-class CommandArgDef {
+class CommandArgDef<Type> {
   String name;
-  ArgType type;
+  ArgType<Type> type;
   bool required;
-  String? defaultValue;
+  dynamic defaultValue;
 
   CommandArgDef(this.name, this.type, {this.required = true, this.defaultValue});
 
   dynamic convert(dynamic value) {
-    return switch (type) {
-      ArgType.string => value is String ? value : value.toString(),
-      ArgType.optionalString => value is String? ? value : value?.toString(),
-      ArgType.int => value is num
-          ? value.toInt()
-          : int.tryParse(value.toString())
-              .throwIfNull(Exception("Cannot convert '$value' to $type")),
-      ArgType.double => value is num
-          ? value.toDouble()
-          : double.tryParse(value.toString())
-              .throwIfNull(Exception("Cannot convert '$value' to $type")),
-      ArgType.boolean => value is bool
-          ? value
-          : bool.tryParse(value.toString(), caseSensitive: false)
-              .throwIfNull(Exception("Cannot convert '$value' to $type")),
-      ArgType.stringArray => value is List<String>
-          ? value
-          : (value is List ? value.map((e) => e.toString()).toList() : null)
-              .throwIfNull(Exception("Cannot convert '$value' to $type"))
-    };
+    return type.convert(value);
   }
 }
 
@@ -150,7 +174,7 @@ class RawCommandWithPositionalArgs extends RawCommand {
   @override
   bool isCompliantWith(CommandDefinition commandDefinition) {
     return super.isCompliantWith(commandDefinition) &&
-        (commandDefinition.args.length >= args.length) &&
+        // (commandDefinition.args.length >= args.length) &&
         (commandDefinition.args.length == args.length || _missingArgsAreNotRequired(commandDefinition));
   }
 
@@ -180,7 +204,7 @@ class RawCommandWithNameArgs extends RawCommand {
   @override
   bool isCompliantWith(CommandDefinition commandDefinition) {
     return super.isCompliantWith(commandDefinition) &&
-        (commandDefinition.args.length >= namedArgs.keys.length) &&
+        // (commandDefinition.args.length >= namedArgs.keys.length) &&
         (commandDefinition.args.every((arg) => namedArgs.containsKey(arg.name) || !arg.required));
   }
 

@@ -36,30 +36,54 @@ extension CommandDefinitionStringExtensions on CommandDefinition {
     try {
       return _parseAlignment(alignmentAsString);
     } catch (e) {
-      throw Exception("'$name' has an invalid alignment value: '$alignmentAsString'");
+      throw Exception("'$name' has an invalid alignment value: '$alignmentAsString'\nSupported values ${_AlignmentValues.values.map((e) => e.name)}");
+    }
+  }
+
+  BoxFit getBoxFitArg({required String name, required RawCommand from}) {
+    String boxFitAsString = getArg(name: name, from: from).toString();
+
+    try {
+      return BoxFit.values.byName(boxFitAsString);
+    } catch (e) {
+      throw Exception("'$name' has an invalid box fit value: '$boxFitAsString'\nSupported values ${BoxFit.values.map((e) => e.name)}");
     }
   }
 
 
-    static final _customAlignmentRegExp = RegExp(r'^-?(1(\.0)?|0(\.[0-9]+)?)/-?(1(\.0)?|0(\.[0-9]+)?)$');
+  static final _customAlignmentRegExp = RegExp(r'^-?(1(\.0)?|0(\.[0-9]+)?)/-?(1(\.0)?|0(\.[0-9]+)?)$');
 
-    Alignment _parseAlignment(String alignment) {
-      if(_customAlignmentRegExp.hasMatch(alignment)) {
-        final alignmentParts = alignment.split("/");
-        return Alignment(double.parse(alignmentParts[0]), double.parse(alignmentParts[1]));
-      }
+  Alignment _parseAlignment(String alignment) {
+    if(_customAlignmentRegExp.hasMatch(alignment)) {
+      final alignmentParts = alignment.split("/");
+      return Alignment(double.parse(alignmentParts[0]), double.parse(alignmentParts[1]));
+    }
 
-      switch(alignment) {
-        case "topLeft": return Alignment.topLeft;
-        case "topCenter": return Alignment.topCenter;
-        case "topRight": return Alignment.topRight;
-        case "centerLeft": return Alignment.centerLeft;
-        case "center": return Alignment.center;
-        case "centerRight": return Alignment.centerRight;
-        case "bottomLeft": return Alignment.bottomLeft;
-        case "bottomCenter": return Alignment.bottomCenter;
-        case "bottomRight": return Alignment.bottomRight;
-        default: throw Exception("Unknown alignment value");
+    final alignmentEnumValue = _AlignmentValues.values.byName(alignment);
+
+    switch(alignmentEnumValue) {
+      case _AlignmentValues.topLeft: return Alignment.topLeft;
+      case _AlignmentValues.topCenter: return Alignment.topCenter;
+      case _AlignmentValues.topRight: return Alignment.topRight;
+      case _AlignmentValues.centerLeft: return Alignment.centerLeft;
+      case _AlignmentValues.center: return Alignment.center;
+      case _AlignmentValues.centerRight: return Alignment.centerRight;
+      case _AlignmentValues.bottomLeft: return Alignment.bottomLeft;
+      case _AlignmentValues.bottomCenter: return Alignment.bottomCenter;
+      case _AlignmentValues.bottomRight: return Alignment.bottomRight;
+      default: throw Exception("Unknown alignment value");
     }
   }
+}
+
+enum _AlignmentValues {
+  topLeft,
+  topCenter,
+  topRight,
+  centerLeft,
+  center,
+  centerRight,
+  bottomLeft,
+  bottomCenter,
+  bottomRight,
 }

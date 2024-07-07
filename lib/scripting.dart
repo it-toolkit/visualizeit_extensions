@@ -92,14 +92,6 @@ class CommandArgDef<Type> {
   }
 }
 
-extension _DynamicExtension on dynamic {
-  dynamic throwIfNull(Exception exception) {
-    if (this == null) throw exception;
-
-    return this;
-  }
-}
-
 class CommandDefinition {
   ///Id of the extension that this command definition is related to.
   ExtensionId extensionId;
@@ -118,13 +110,13 @@ class CommandDefinition {
     final argPosition = _getArgPositionByName(name);
     final argDef = args[argPosition];
 
-    if (from is RawCommandWithPositionalArgs && argPosition < from.args.length) {
+    if (from is _RawCommandWithPositionalArgs && argPosition < from.args.length) {
       return argDef.convert(from.getArg(argPosition));
-    } else if (from is RawCommandWithPositionalArgs && !argDef.required) {
+    } else if (from is _RawCommandWithPositionalArgs && !argDef.required) {
       return argDef.convert(argDef.defaultValue);
-    } else if (from is RawCommandWithNameArgs && from.containsArg(argDef.name)) {
+    } else if (from is _RawCommandWithNameArgs && from.containsArg(argDef.name)) {
       return argDef.convert(from.getArg(name));
-    } else if (from is RawCommandWithNameArgs && !argDef.required) {
+    } else if (from is _RawCommandWithNameArgs && !argDef.required) {
       return argDef.convert(argDef.defaultValue);
     }
 
@@ -181,13 +173,21 @@ abstract class RawCommand {
 
   const RawCommand._(this.name, { this.metadata }); // Private constructor
 
-  factory RawCommand.literal(String name, {CommandMetadata? metadata}) = RawLiteralCommand;
-  factory RawCommand.withPositionalArgs(String name, List<dynamic> args, {CommandMetadata? metadata}) = RawCommandWithPositionalArgs;
-  factory RawCommand.withNamedArgs(String name, Map<String, dynamic> namedArgs, {CommandMetadata? metadata}) = RawCommandWithNameArgs;
+  factory RawCommand.literal(String name, {CommandMetadata? metadata}) = _RawLiteralCommand;
+  factory RawCommand.withPositionalArgs(String name, List<dynamic> args, {CommandMetadata? metadata}) = _RawCommandWithPositionalArgs;
+  factory RawCommand.withNamedArgs(String name, Map<String, dynamic> namedArgs, {CommandMetadata? metadata}) = _RawCommandWithNameArgs;
 }
 
-class RawLiteralCommand extends RawCommand {
-  RawLiteralCommand(super.name, {super.metadata}) : super._(); // Private constructor
+extension _DynamicExtension on dynamic {
+  dynamic throwIfNull(Exception exception) {
+    if (this == null) throw exception;
+
+    return this;
+  }
+}
+
+class _RawLiteralCommand extends RawCommand {
+  _RawLiteralCommand(super.name, {super.metadata}) : super._(); // Private constructor
 
   @override
   int argsLength() => 0;
@@ -201,10 +201,10 @@ class RawLiteralCommand extends RawCommand {
   String toString() => 'RawLiteralCommand {name=$name}';
 }
 
-class RawCommandWithPositionalArgs extends RawCommand {
+class _RawCommandWithPositionalArgs extends RawCommand {
   final List<dynamic> args;
 
-  RawCommandWithPositionalArgs(super.name, this.args, {super.metadata})
+  _RawCommandWithPositionalArgs(super.name, this.args, {super.metadata})
       : super._(); // Private constructor
 
   @override
@@ -231,10 +231,10 @@ class RawCommandWithPositionalArgs extends RawCommand {
   String toString() => 'RawLiteralCommand {name=$name, args=$args}';
 }
 
-class RawCommandWithNameArgs extends RawCommand {
+class _RawCommandWithNameArgs extends RawCommand {
   final Map<String, dynamic> namedArgs;
 
-  RawCommandWithNameArgs(super.name, this.namedArgs, {super.metadata})
+  _RawCommandWithNameArgs(super.name, this.namedArgs, {super.metadata})
       : super._(); // Private constructor
 
   @override

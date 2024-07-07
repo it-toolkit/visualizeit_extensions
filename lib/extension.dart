@@ -15,12 +15,17 @@ abstract class LanguageCodes {
 }
 
 class Extension {
+  ///Extension id to be used in scripts. The id can only contain letters, numbers and underscores.
   ExtensionId id;
   Scripting scripting;
   Renderer renderer;
   Map<LanguageCode, String> markdownDocs;
 
-  Extension({required this.id, required this.scripting, required this.renderer, required this.markdownDocs});
+  Extension({required this.id, required this.scripting, required this.renderer, required this.markdownDocs}) {
+    if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(id)) {
+      throw Exception("Invalid extension id '$id', it must be compliant with regex r'^[a-zA-Z0-9_]\$'");
+    }
+  }
 
   Extension.create({required ExtensionId id, required Map<LanguageCode, String> markdownDocs, required ExtensionCore extensionCore})
     : this(id: id, scripting: extensionCore, renderer: extensionCore, markdownDocs: markdownDocs);
@@ -30,6 +35,11 @@ abstract class ExtensionBuilder {
   Future<Extension> build();
 }
 
+///Simplified Scripting and Renderer implementation based command definitions
+///
+///This abstraction is intended to be used when models have multi widget representations
+///
+///Only [Renderer.renderAll] method must be implemented
 abstract class ExtensionCore implements Scripting, Renderer {
   final Map<CommandDefinition, Command Function(RawCommand)> _config;
   List<CommandDefinition>? _allCommandDefinitions;
@@ -58,6 +68,11 @@ abstract class ExtensionCore implements Scripting, Renderer {
   }
 }
 
+///Simplified Scripting and Renderer implementation based on command definitions
+///
+///This abstraction is intended to be used when models have a single widget representations
+///
+///Only [SimpleExtensionCore.render] method must be implemented
 abstract class SimpleExtensionCore extends ExtensionCore {
   SimpleExtensionCore(super.supportedCommands);
 

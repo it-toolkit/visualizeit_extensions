@@ -5,6 +5,12 @@ import 'package:visualizeit_extensions/scripting.dart';
 
 extension CommandDefinitionIntExtensions on CommandDefinition {
 
+  ///Returns an integer value validating if it is in range[[min] , [max]], for the provided argument name
+  ///
+  ///It throws an exception if:
+  ///* There no argument definition related to the provided name
+  ///* The value cannot be converted to the argument related type.
+  ///* The integer value is not in range [[min] , [max]]
   int getIntArgInRange({required String name, required RawCommand from, required int min, required int max}) {
     int value = getArg(name: name, from: from);
     if (value < min || value > max) throw Exception("'$name' must be in range [ $min , $max ]");
@@ -12,6 +18,12 @@ extension CommandDefinitionIntExtensions on CommandDefinition {
     return value;
   }
 
+  ///Returns an integer value validating if it is greater than or equals to [min], for the provided argument name
+  ///
+  ///It throws an exception if:
+  ///* There no argument definition related to the provided name
+  ///* The value cannot be converted to the argument related type.
+  ///* The integer value is less than [min]
   int getIntArgGreaterOrEqualThan({required String name, required RawCommand from, required int min}) {
     int value = getArg(name: name, from: from);
     if (value < min) throw Exception("'$name' must be greater than or equal to '$min'");
@@ -19,6 +31,12 @@ extension CommandDefinitionIntExtensions on CommandDefinition {
     return value;
   }
 
+  ///Returns an integer value validating if it is less than or equals to [max], for the provided argument name
+  ///
+  ///It throws an exception if:
+  ///* There no argument definition related to the provided name
+  ///* The value cannot be converted to the argument related type.
+  ///* The integer value is greater than [max]
   int getIntArgLessOrEqualThan({required String name, required RawCommand from, required int max}) {
     int value = getArg(name: name, from: from);
     if (value > max) throw Exception("'$name' must be less than or equal to '$max'");
@@ -30,6 +48,23 @@ extension CommandDefinitionIntExtensions on CommandDefinition {
 
 
 extension CommandDefinitionStringExtensions on CommandDefinition {
+
+  ///Returns an [Alignment] value for the provided argument name
+  ///
+  ///It throws an exception if:
+  ///* There no argument definition related to the provided name
+  ///* The value is not an string that can be parsed as a valid [Alignment]
+  ///
+  /// Supported alignment values:
+  ///* topLeft
+  ///* topCenter
+  ///* topRight
+  ///* centerLeft
+  ///* center
+  ///* centerRight
+  ///* bottomLeft
+  ///* bottomCenter
+  ///* bottomRight
   Alignment getAlignmentArg({required String name, required RawCommand from}) {
     String alignmentAsString = getArg(name: name, from: from).toString();
 
@@ -40,6 +75,20 @@ extension CommandDefinitionStringExtensions on CommandDefinition {
     }
   }
 
+  ///Returns a [BoxFit] value for the provided argument name
+  ///
+  ///It throws an exception if:
+  ///* There no argument definition related to the provided name
+  ///* The value is not an string that can be parsed as a valid [BoxFit]
+  ///
+  /// Supported box fit values:
+  ///* fill
+  ///* contain
+  ///* cover
+  ///* fitWidth
+  ///* fitHeight
+  ///* none
+  ///* scaleDown
   BoxFit getBoxFitArg({required String name, required RawCommand from}) {
     String boxFitAsString = getArg(name: name, from: from).toString();
 

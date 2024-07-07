@@ -31,7 +31,7 @@ class Extension {
     : this(id: id, scripting: extensionCore, renderer: extensionCore, markdownDocs: markdownDocs);
 }
 
-abstract class ExtensionBuilder {
+abstract interface class ExtensionBuilder {
   Future<Extension> build();
 }
 

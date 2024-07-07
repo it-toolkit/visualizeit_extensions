@@ -1,6 +1,6 @@
 name: visualizeit_extensions
 description: "Shared code to build extensions"
-version: 0.0.1
+version: 1.0.0
 homepage:
 
 environment:

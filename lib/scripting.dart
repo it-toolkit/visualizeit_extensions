@@ -10,19 +10,36 @@ typedef _Int = int;
 typedef _Double = double;
 
 class ArgType<Type> {
+  ///Non null string
   static ArgType string = ArgType<String>("string", (value) => value is String ? value : (value?.toString())
       .throwIfNull(Exception("Cannot convert '$value' to string")));
+
+  ///Optional string (can be null)
   static ArgType optionalString = ArgType<String?>("optionalString", string._convert);
+
+  ///Array of non null string
   static ArgType stringArray = ArgType<String>("stringArray", string._convert, array: true);
 
+  ///Non null integer
+  ///
+  ///Double values will be converted to integer
   static ArgType int = ArgType<_Int>("int", (value) => value is num ? value.toInt() : _Int.tryParse(value.toString())
       .throwIfNull(Exception("Cannot convert '$value' to int")));
+
+  ///Array of non null integers
   static ArgType intArray = ArgType<_Int>("intArray", int._convert, array: true);
 
+  ///Non null double
   static ArgType double = ArgType<_Double>("double", (value) => value is num ? value.toDouble() : _Double.tryParse(value.toString())
       .throwIfNull(Exception("Cannot convert '$value' to double")));
+  ///Array of non null integers
   static ArgType doubleArray = ArgType<_Double>("doubleArray", double._convert, array: true);
 
+  ///Non null boolean
+  ///
+  ///* 'true' and 'TRUE' will be considered as 'true'
+  ///* 'false' and 'FALSE' will be considered as 'false'
+  ///* Other values are invalid
   static ArgType boolean = ArgType<bool>("boolean", (value) => value is bool ? value : bool.tryParse(value.toString(), caseSensitive: false)
       .throwIfNull(Exception("Cannot convert '$value' to boolean")));
 
@@ -35,6 +52,7 @@ class ArgType<Type> {
 
   static bool _isNullable<T>() => null is T;
 
+  ///Returns the value converted to the current type if allowed or throws an exception if that is not possible.
   dynamic convert(dynamic value){
     if ((optional) && value == null) return null;
 
@@ -54,9 +72,17 @@ class ArgType<Type> {
 }
 
 class CommandArgDef<Type> {
+  ///Argument name as it must be written in scripts when using map notation
   String name;
+  ///Argument type
   ArgType<Type> type;
+  ///Marks an argument as required or optional (is false)
+  ///
+  /// When a required argument is not provided the parser will throw an exception
   bool required;
+  ///Default value for optional (non [required]) argument
+  ///
+  ///The provided value must compatible with the argument [type]
   dynamic defaultValue;
 
   CommandArgDef(this.name, this.type, {this.required = true, this.defaultValue});
@@ -75,12 +101,19 @@ extension _DynamicExtension on dynamic {
 }
 
 class CommandDefinition {
+  ///Id of the extension that this command definition is related to.
   ExtensionId extensionId;
+  ///Command name as it must be written in scripts
   String name;
+  ///List of supported command arguments
   List<CommandArgDef> args;
 
   CommandDefinition(this.extensionId, this.name, this.args);
 
+  ///Returns the value of the argument by name
+  ///
+  ///It throws an exception if there no argument definition related to the provided name or if the value cannot be
+  ///converted to the argument related type.
   dynamic getArg({required String name, required RawCommand from}) {
     final argPosition = _getArgPositionByName(name);
     final argDef = args[argPosition];
@@ -105,14 +138,18 @@ class CommandDefinition {
   }
 }
 
+///Used to bind the extension supported commands with VisualizeIT scripting module
 abstract interface class Scripting {
+  ///Return all available command definitions
   List<CommandDefinition> getAllCommandDefinitions();
 
   ///Returns a valid command if a compatible [CommandDefinition] is found or null otherwise
   Command? buildCommand(RawCommand rawCommand);
 }
 
+///Parsed command additional info
 class CommandMetadata {
+  ///Command starting line index in the related script yaml
   final int scriptLineIndex;
 
   CommandMetadata(this.scriptLineIndex);
@@ -123,12 +160,14 @@ class CommandMetadata {
   }
 }
 
+///Raw command data parsed from script
 abstract class RawCommand {
   final String name;
   final CommandMetadata? metadata;
 
   int argsLength();
 
+  ///Returns 'true' if the raw command data can be used to build a command with the provided [CommandDefinition]
   bool isCompliantWith(CommandDefinition commandDefinition) {
     var namespace = "${commandDefinition.extensionId}.";
 
